@@ -23,9 +23,9 @@ Assuming that the string is not ideal and is pinned at locations $l=0$ and $l=L$
 \end{equation}
 %
 where we propose to estimate string, fret and plucking position from physical models of the amplitude $C_m$, the fundamental frequency $\omega_0$ and inharmonicity coefficent $B$. In~\eqref{eq:modalSum} $\kappa_m = \omega_m / c$ and $\phi_m$ is the wave number and phase of the $m$th mode. The instantaneous frequency $\psi_m(\omega_0,B)$ follows the piano model proposed in~\cite{fletcher:piano_model} as 
-\begin{equation}\label{eq:pianoModel}
-  \psi_m(\omega_0,B) = m \omega_0 \sqrt{1+B m^2} \quad [\text{s}^{-1}], 
-\end{equation}
+%\begin{equation}\label{eq:pianoModel}
+$  \psi_m(\omega_0,B) = m \omega_0 \sqrt{1+B m^2} \quad [\text{s}^{-1}]$, 
+%\end{equation}
 that has been proven useful for accurate pitch estimation~\cite{galembo1994measuring, nillson:multipitch_inharmonic_signals} on stringed instruments and for feature extraction~\cite{michelson2018_aes,abesser2012feature,barbancho:inharmonicity_tablature} with both $\omega_0$ and $B$ as ``black box'' parameters.
 Assuming the initial displacement to be triangular and no initial velocity $\frac{\partial y}{\partial t} = 0 \, \forall\, l$, the $m$th amplitude $C_m$ is defined by the Fourier sine series as~\cite{donkin:acoustics,fletcher:principles_of_vibration_and_sound}
 \begin{equation}\label{eq:pluck_closed_form}
