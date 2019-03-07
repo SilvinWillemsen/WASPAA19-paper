@@ -19,7 +19,7 @@
 % Title.
 % --------------------
 % \title{Estimation of Guitar String, fret and plucking position using a physical model and no training data}
-\title{ Improved physical models for fast estimation of guitar string, fret and plucking position}
+\title{Physical models for fast estimation of guitar string, fret and plucking position}
 %\title{Estimation of Guitar String, fret and plucking position using a simulation of the inharmonic string}
 % ---------------
 \name{Jacob~M\o ller Hjerrild, Silvin Willemsen and~Mads~Gr\ae sb\o ll~Christensen}%\thanks{Thanks to XYZ agency for funding.}}
@@ -34,7 +34,9 @@
 %%%%%%%%%%%%%%%%%%%% ABSTRACT %%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \begin{abstract}
-  In this paper a method for analyzing guitar performances is proposed. This method extracts the activated string and fret as well as the plucking position, and it is purely based on a physical model of string excitation and vibration, hence it does not require any training data which makes it fast and effective. Since it operates on a 40 ms segment-by-segment basis it is suitable for real-time estimation...
+  %In this paper a method for analyzing guitar performances is proposed. This method extracts the activated string and fret as well as the plucking position, and it is purely based on a physical model of string excitation and vibration, hence it does not require any training data.
+  
+  In this paper a method for extracting string, fret and plucking position based purely on a physical model of string excitation and vibration is proposed. As the method does not require training data and the model only takes 45 ms to generate it is fast and effective. Since the estimator operates on a 40 ms segment-by-segment basis it is suitable for real-time applications.
 \end{abstract}
 %
 \begin{keywords}
@@ -55,15 +57,17 @@ To overcome such problems, Barbancho et al.~\cite{barbancho:inharmonicity_tablat
     \item Although training is relatively fast, it is required for every different set of guitar strings.
         \item There is no information of class dependent distributions in the observed feature space, i.e. covariance structures. Except from the 6 classes represented in the training set.
 \end{itemize}
-In this paper, we extend the work of~\cite{hjerrild::icassp19} by eliminating the training procedure that requires the user to provide recordings and as we shall see, we obtain detailed and class dependent distributions in the feature space. Instead of training a model from audio recordings, we propose to simulate a model of guitar string vibrations based on physical properties of the string, given from string dimensions and materials including a generalized model of the plucking force. Detailed information of string properties are often available on string packets and in datasheets. The objective of the proposed method is to extract the location of interactions of both hands of the guitar player when these can be arbitrarily located along a string. This is done on a segment-by-segment basis and requires no audio recordings for training, but information about string properties, such that the proposed method is suitable for high-tempo and real-time applications. The feature set is extracted with the parametric pitch estimation method of~\cite{hjerrild::icassp19} and consists of fundamental frequency $\omega_0$ and inharmonicity $B$, which we model in detail in the proposed simulation. Figure~\ref{fig:guitar_overview} gives an overview of the guitar, where the right hand controls plucking position and the left hand controls pitch by using the fretboard. One pitch is produced in various positions and each string and fret combination is defined as one class, such that we have a set of $K$ mutually exclusive classes. 
+In this paper, we extend the work of~\cite{hjerrild::icassp19} by eliminating the training procedure that requires the user to provide recordings and as we shall see, we obtain detailed and class dependent distributions in the feature space. Instead of training a model from audio recordings, we propose to simulate a model of guitar string vibrations based on physical properties of the string, given from string dimensions and materials, often available on string packets and in datasheets. %including a generalized model of the plucking force. Detailed information 
+The objective of the proposed method is to extract the location of interactions of both hands of the guitar player (as these can be arbitrarily located along a string) on a segment-by-segment basis. %and requires no audio recordings for training, but information about string properties. %, such that the proposed method is suitable for high-tempo and real-time applications.
+Figure~\ref{fig:guitar_overview} gives an overview of the guitar, where the right hand controls plucking position and the left hand controls pitch by using the fretboard. One pitch is produced in various positions and each string and fret combination is defined as one class, such that we have a set of $K$ mutually exclusive classes. The feature set is extracted with the parametric pitch estimation method of~\cite{hjerrild::icassp19} and consists of fundamental frequency $\omega_0$ and inharmonicity $B$, which we model in detail in the proposed simulation. This is contrary to the state of the art, where $\omega_0$ and $B$ have used as ``black box'' parameters, for accurate fundamental frequency estimation~\cite{galembo1994measuring, nillson:multipitch_inharmonic_signals} and feature extraction~\cite{michelson2018_aes,abesser2012feature,barbancho:inharmonicity_tablature}. In an attempt at making the physical model more realistic we consider effects of plucking deflection and string wrapping when calculating $B$ which we hypothesise will improve the simulation.
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%% SIGNAL MODEL %%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
 \input{macros.tex}
-\section{signal model}
-The signal model is derived from the string vibrations, thus we start by describing the activation from the guitar pick. 
+\section{Signal Model}
+%The signal model is derived from the string vibrations, thus we start by describing the activation from the guitar pick. 
 %
 \begin{figure}[t]\
   \centering
@@ -72,18 +76,18 @@ The signal model is derived from the string vibrations, thus we start by describ
   }\label{fig:guitar_overview}\vspace{-2mm}
 \end{figure}
 %
-The string has an initial deflection $\delta$ at the plucking position $P$, which is at the $P$th fraction of its length $(0<PL<L)$, where $L$ is the length of the vibrating string (see i.e.,~Fig.~\ref{fig:guitar_overview}). Assuming that the string is not ideal and is pinned at locations $l=0$ and $l=L$, its general solution at time $t\geq0$ can be written as a sum of normal modes~\cite{fletcher:physics_of_musical_instruments}
+The string has an initial deflection $\delta$ at the plucking position $P$, which is at the $P$th fraction of its length $(0<PL<L)$, where $L$ is the length of the vibrating string (see i.e.,~Fig.~\ref{fig:guitar_overview}). Assuming that the string is inharmonic and is pinned at locations $l=0$ and $l=L$, its general solution at time $t\geq0$ can be written as a sum of normal modes~\cite{fletcher:physics_of_musical_instruments}
 %
 \begin{equation}\label{eq:modalSum}
     y(l,t) = \sum_m C_m\sin(\psi_m(\omega_0,B)t+\phi_m)\sin\kappa_ml,
 \end{equation}
 %
 %where we propose to estimate string, fret and plucking position from simulated physical models of the
-with fundamental frequency $\omega_0$, inharmonicity coefficient $B$ and amplitude $C_m$, wave number $\kappa_m = m/ 2L$ and phase $\phi_m$ of the $m$th mode. The instantaneous frequency $\psi_m(\omega_0,B)$ follows the piano model as ~\cite{fletcher:piano_model} 
+with fundamental frequency $\omega_0$, inharmonicity coefficient $B$ and amplitude $C_m$, wave number $\kappa_m = m/ 2L$ and phase $\phi_m$ of the $m$th mode. The instantaneous frequency $\psi_m(\omega_0,B)$ follows the piano model ~\cite{fletcher:piano_model} 
 %\begin{equation}\label{eq:pianoModel}
-$  \psi_m(\omega_0,B) = m \omega_0 \sqrt{1+B m^2}$, % \quad [\text{s}^{-1}], 
+$  \psi_m(\omega_0,B) = m \omega_0 \sqrt{1+B m^2}$. % \quad [\text{s}^{-1}], 
 %\end{equation}
-where $\omega_0$ and $B$ has been used as ``black box'' parameters, for accurate fundamental frequency estimation~\cite{galembo1994measuring, nillson:multipitch_inharmonic_signals} and feature extraction~\cite{michelson2018_aes,abesser2012feature,barbancho:inharmonicity_tablature}.
+
 Assuming the initial displacement to be triangular with no initial velocity $\frac{\partial y}{\partial t} = 0 \, \forall\, l$, the $m$th amplitude $C_m$ is defined by the Fourier sine series as~\cite{donkin:acoustics,fletcher:principles_of_vibration_and_sound}
 \begin{equation}\label{eq:pluck_closed_form}
     C_m = \frac{2\delta}{m^2\pi^2P(1-P)}\sin(m\pi P), \quad [\cdot].
@@ -94,11 +98,11 @@ On the guitar we assume that a pickup is measuring the displacement $y(l,t)$ in 
 %\begin{equation}
      $x(n)  \vert_{l=\lambda} \propto y(\lambda, t).$
 %\end{equation}   
-We parametrize $x(n)$ as proposed in~\cite{hjerrild::icassp19}, where $x(n)$ is modeled as an inharmonic sinusoidal part and a noise part, i.e.,  
+We parametrize $x(n)$ as proposed in~\cite{hjerrild::icassp19}, where $x(n)$ is modeled as an inharmonic sinusoidal part and a noise part $v(n)$, i.e.,  
 \begin{equation}\label{eq:sigmod1}
   x(n)\! =  \!\sum\limits_{m=1}^{M}\!\! \alpha_{m} \exp\big({j\psi_m(\omega_0,B) n}\big)+v(n),
 \end{equation}
-where $\alpha_{m}$ is the complex amplitude of the $m$th partial, $M$ is the number of partials, $v(n)$ is noise and $\psi_m(\omega_0,B)$ is defined in~\eqref{eq:pianoModel}.
+where $\alpha_{m}$ is the complex amplitude of the $m$th partial and $M$ is the number of partials.
 %
  At time instance $n$, the observed signal vector $\vecx \in \mathbb{C}^N$ is represented as $\vecx = [x(0) \, x(1) \, \cdots \, x(N-1)]^T$, with $T$ denoting the transpose. 
 In matrix notation the observed signal is
@@ -138,8 +142,7 @@ To obtain a class dependent model and to overcome the problem of requiring the u
     wrapping density $\rho_\text{w}$.% \sim \mathcal{N}(\mu_{\rho_\text{w}},\,\sigma_{\rho_\text{w}}^{2})$.
 \end{itemize}
 %
-We assume that the user knows $L$ from the guitar-type, and the properties ${T_0}$, ${d_\text{c}}$, ${d_\text{w}}$, ${\rho_\text{c}}$, ${\rho_\text{w}}$ are available from string manufacturers in the form of datasheets which often can be found printed on the string package. 
-\noindent The first feature $\omega_0$ is well defined as
+We assume that the user knows $L$ from the guitar-type, and the properties ${T_0}$, ${d_\text{c}}$, ${d_\text{w}}$, ${\rho_\text{c}}$, ${\rho_\text{w}}$ are available on string packaging or datasheets. The first feature $\omega_0$ is well defined as
 \begin{equation}\label{eq:omega_0}
     \omega_0 = \sqrt{\frac{T_0}{ \upsilon}} \frac{1}{2L} \quad [\text{s}^{-1}],
 \end{equation}
@@ -204,8 +207,8 @@ where Young's Modulus $E$ of the string material is defined in \eqref{eq:tensile
 % \end{equation}
 %
 It is expected that $d_\text{c}\ll\delta$. %, i.e. the plucking deflection is likely to be more than an order of magnitude greater than the string diameter. 
-Hence, the inharmonicity caused by the plucking deflection dominates the intrinsic inharmonicity. However, this is only true immediately after the plucking event, as the $  \delta$-effect dies down rapidly after the string is excited \cite{rossing:science_of_string_instruments}. %Presumably, this is the reason why the literature on this topic has disregarded the initial displacement in the calculation of inharmonicity. 
-As in our application, we solely use the first 40 ms of the plucked string sound, we hypothesise that it is of importance to include the effect that the initial displacement has on the total inharmonicity, considering that this simulation can make way for further research in both the $d_\text{c}$ and $\delta$-effects.
+Hence, the inharmonicity caused by the plucking deflection dominates the intrinsic inharmonicity. However, this is only true immediately after the plucking event, as the effect of $\delta$ dies down rapidly after the string is excited \cite{rossing:science_of_string_instruments}. %Presumably, this is the reason why the literature on this topic has disregarded the initial displacement in the calculation of inharmonicity. 
+As in our application, we solely use the first 40 ms of the plucked string sound, we hypothesise that it is of importance to include the effect that the initial displacement has on the total inharmonicity, considering that this simulation can make way for further research in both the $d_\text{c}$ and the effect of $\delta$.
 %
 %\begin{equation}\label{eq:tension}
 %    T_0 = \mu(2L\omega_0)^2, \quad [\text{N}],
@@ -378,10 +381,10 @@ $    d_{\textup{LS}}(\vecalphahat,\mathbf{C}(P)) = \sqrt{ \frac{1}{M} \sum_m 10\
 %\section{Discussion}
 
 %Contrary to our hypothesis, we found
-Using the proposed simulation framework, it can be shown that a high plucking deflection does not influence the inharmonicity as denoted by \eqref{eq:totalInharmonicity}. As Rossing states, the $\delta$-effect dies down rapidly after the string excitation, and it can be discussed that this happens in a time-period an order smaller than 40 ms. It can be shown that excluding the contribution of the wrapping on $T_0$, is negligible. Looking at the values for the specific strings we used in our experiments, we calculated $T_\text{w}$ of the low E-string (with the biggest $d_\text{w}$) to have a contribution of $0.75\%$ on $T_0$. For low piano strings, or other types of strings with a high-diameter wrapping it will make more sense to include the effect of wrapping in the inharmonicity calculation.
-\vspace{-2}
+Using the proposed simulation framework, it can be shown that a high plucking deflection does not influence the inharmonicity as denoted by \eqref{eq:totalInharmonicity}. As Rossing states, the effect of $\delta$ dies down rapidly after the string excitation, and it can be discussed that this happens in a time-period an order smaller than 40 ms. It can be shown that excluding the contribution of the wrapping on $T_0$, is negligible. Looking at the values for the specific strings we used in our experiments, we calculated $T_\text{w}$ of the low-E string (with the biggest $d_\text{w}$) to have a contribution of $0.75\%$ on $T_0$. For low piano strings, or other types of strings with a high-diameter wrapping it will make more sense to include the effect of wrapping in the inharmonicity calculation.
+\vspace{-2pt}
 \section{Conclusion}
-In this paper a method for analyzing guitar performances is proposed. This method extracts the activated string and fret as well as the plucking position, and it is purely based on a physical model of string excitation and vibration, hence it does not require any training data which makes it fast and effective. Since it operates on a 40 ms segment-by-segment basis it is suitable for real-time estimation...
+In this paper, we proposed a method for extracting string, fret and plucking position based purely on a physical model of string excitation and vibration. The method performs slightly better than the state of the art presented in \cite{hjerrild::icassp19} and is faster in use as no audio needs to be recorded before to train the estimator. Since the method operates on a 40 ms segment-by-segment basis it is suitable for real-time applications.
   %Maybe something along the lines of:\\
 %Now that we have included plucking position to calculate the initial displacement $\delta$ we might be able to also estimate this. 
 %
